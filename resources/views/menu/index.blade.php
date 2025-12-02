@@ -31,11 +31,11 @@
 {{-- Product List --}}
 <div class="product-grid">
 
-    @foreach($products as $product)
+    @forelse($products as $product)
         <div class="card">
             {{-- Gambar produk --}}
             @if($product->image)
-                <img src="{{ asset('storage/products/' . $product->image) }}" alt="Produk">
+                <img src="{{ asset('products/' . $product->image) }}" alt="Produk">
             @else
                 <img src="https://via.placeholder.com/150" alt="No Image">
             @endif
