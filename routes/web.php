@@ -8,6 +8,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\QnaController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\DashboardController;
 // use App\Http\Controllers\MenuController; <-- Baris ini dihapus karena filenya sudah tidak ada
 
 // 1. Redirect halaman utama ('/') langsung ke daftar menu
@@ -26,12 +27,13 @@ Route::get('/notifications/{id}', [NotificationController::class, 'show'])->name
 Route::get('/qna', [QnaController::class, 'index'])->name('qna.index');
 Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
 Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 // 2. Resource Controller untuk Menu (menggunakan ProductController)
 // Ini otomatis membuat semua route: index, create, store, edit, update, destroy
 // URL: http://127.0.0.1:8000/menu
 Route::resource('menu', ProductController::class);
-
+Route::resource('products', ProductController::class);
 // 3. Routes Manual untuk Orders (Pemesanan)
 // URL: http://127.0.0.1:8000/orders
 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
