@@ -8,29 +8,29 @@
     <div class="px-6 pt-8 pb-2">
         <h2 class="text-2xl font-bold text-gray-900 mb-4 tracking-tight">Pemesanan</h2>
         
-        <form method="GET" class="relative mb-5">
+        <div class="flex bg-gray-100 p-1.5 rounded-2xl mb-5">
+            {{-- Tab Pesanan Baru (Aktif) --}}
+            <div class="flex-1 text-center py-2.5 rounded-xl text-sm font-bold bg-[#37967D] text-white shadow-sm transition-all cursor-default flex items-center justify-center gap-2">
+                <i class="ph ph-plus-circle text-lg"></i> Pesanan Baru
+            </div>
+            
+            {{-- Tab Riwayat (Link ke Index) --}}
+            <a href="{{ route('orders.index') }}" class="flex-1 text-center py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white/50 transition-all flex items-center justify-center gap-2">
+                <i class="ph ph-clock-counter-clockwise text-lg"></i> Riwayat
+            </a>
+        </div>
+
+        <form method="GET" class="relative mb-2">
             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <i class="ph ph-magnifying-glass text-gray-400 text-xl"></i>
             </div>
             <input type="text" name="search" value="{{ request('search') }}" 
-                class="w-full bg-gray-50 border border-gray-100 text-gray-700 text-sm rounded-2xl pl-11 pr-12 py-3.5 focus:outline-none focus:border-[#37967D] focus:ring-1 focus:ring-[#37967D] transition-all placeholder-gray-400" 
+                class="w-full bg-gray-50 border border-gray-100 text-gray-700 text-sm rounded-2xl pl-11 pr-4 py-3.5 focus:outline-none focus:border-[#37967D] focus:ring-1 focus:ring-[#37967D] transition-all placeholder-gray-400" 
                 placeholder="Cari menu...">
             <button class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-[#37967D] transition-colors">
                 <i class="ph ph-sliders-horizontal text-xl"></i>
             </button>
         </form>
-
-        <div class="flex bg-gray-100 p-1.5 rounded-2xl mb-4">
-            {{-- Tab Pesanan Baru (Aktif) --}}
-            <div class="flex-1 text-center py-2.5 rounded-xl text-sm font-bold bg-[#37967D] text-white shadow-sm transition-all cursor-default flex items-center justify-center gap-2">
-                <i></i> Pesanan Baru
-            </div>
-            
-            {{-- Tab Riwayat --}}
-            <a href="{{ route('orders.index') }}" class="flex-1 text-center py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white/50 transition-all flex items-center justify-center gap-2">
-                <i></i> Riwayat
-            </a>
-        </div>
     </div>
 
     <div class="pl-6 pb-6 pt-1">
@@ -41,21 +41,20 @@
                     ['label' => 'Nasi', 'icon' => 'ph-bowl-food'],
                     ['label' => 'Minuman', 'icon' => 'ph-coffee'],
                     ['label' => 'Mie', 'icon' => 'ph-bowl-steam'],
-                    ['label' => 'Jajanan', 'icon' => 'ph-cookie'],
-                    ['label' => 'Lainnya', 'icon' => 'ph-dots-three'] // BARU
+                    ['label' => 'Jajanan', 'icon' => 'ph-cookie']
                 ];
                 $currentCat = request('category');
             @endphp
 
             @foreach($categories as $cat)
                 @php 
-                    $isActive = ($currentCat == $cat['label'] || (!request('category') && $cat['label'] == 'Semua'));
+                    $isActive = ($currentCat == $cat['label'] || (!$currentCat && $cat['label'] == 'Semua'));
                     $boxClass = $isActive ? 'bg-[#37967D]/[0.08] border-[#37967D] shadow-sm' : 'bg-white border-gray-100 hover:border-gray-200';
                     $iconClass = $isActive ? 'bg-[#37967D]/20 text-[#37967D]' : 'bg-gray-50 text-gray-400';
                     $textClass = $isActive ? 'text-[#37967D] font-bold' : 'text-gray-500 font-medium';
                 @endphp
 
-                <a href="{{ route('orders.create', ['category' => $cat['label'] == 'Semua' ? null : $cat['label'], 'search' => request('search')]) }}">
+                <a href="{{ route('orders.create', ['category' => $cat['label'] == 'Semua' ? null : $cat['label']]) }}">
                     <div class="{{ $boxClass }} w-[88px] h-[92px] border rounded-2xl flex flex-col items-center justify-center gap-2 transition-all duration-300">
                         <div class="{{ $iconClass }} w-10 h-10 rounded-full flex items-center justify-center transition-colors">
                             <i class="ph {{ $cat['icon'] }} text-2xl"></i>
@@ -68,8 +67,7 @@
     </div>
 </div>
 
-<div class="px-6 pt-4 pb-48">
-    <div class="grid grid-cols-2 gap-4">
+<div class="px-6 pt-4 pb-48"> <div class="grid grid-cols-2 gap-4">
         @forelse($products as $product)
         <div class="bg-white p-3.5 rounded-2xl shadow-[0_2px_15px_rgba(0,0,0,0.03)] border border-gray-50 flex flex-col h-full group transition-all hover:border-[#37967D]/30 product-card"
              data-id="{{ $product->id }}">
@@ -95,7 +93,9 @@
                     <button type="button" class="btn-minus hidden w-8 h-8 rounded-xl border border-gray-200 flex items-center justify-center text-gray-500 active:bg-gray-100 hover:border-[#37967D] hover:text-[#37967D] transition-all">
                         <i class="ph-bold ph-minus text-xs"></i>
                     </button>
+                    
                     <span class="qty-display hidden text-sm font-bold text-gray-800 w-5 text-center">0</span>
+
                     <button type="button" class="btn-plus w-8 h-8 rounded-xl bg-[#37967D] text-white flex items-center justify-center shadow-lg shadow-[#37967D]/20 active:scale-90 hover:bg-[#2f826c] transition-all">
                         <i class="ph-bold ph-plus text-xs"></i>
                     </button>
@@ -108,6 +108,7 @@
                     <i class="ph ph-bowl-food text-gray-300 text-4xl"></i>
                 </div>
                 <h3 class="text-gray-800 font-semibold mb-1">Menu tidak ditemukan</h3>
+                <p class="text-gray-400 text-sm">Coba cari dengan kata kunci lain.</p>
             </div>
         @endforelse
     </div>
@@ -117,7 +118,7 @@
     @csrf
     <input type="hidden" name="cart" id="cartInput">
     
-    <div id="checkoutBar" class="invisible fixed bottom-24 left-0 w-full px-6 z-40 max-w-[480px] mx-auto left-0 right-0 transform translate-y-10 transition-all duration-300">
+    <div id="checkoutBar" class="invisible fixed bottom-[90px] left-0 w-full px-6 z-40 max-w-[480px] mx-auto left-0 right-0 transform translate-y-10 transition-all duration-300">
         <button type="button" onclick="submitToDetail()" class="w-full bg-[#37967D] text-white font-bold py-4 rounded-2xl shadow-2xl shadow-[#37967D]/40 flex justify-between items-center px-6 active:scale-98 transition-transform hover:bg-[#2f826c] border border-white/10 backdrop-blur-sm">
             <div class="flex flex-col items-start">
                 <span class="text-[10px] uppercase tracking-wider opacity-80 font-medium">Total Pesanan</span>
@@ -205,25 +206,21 @@
             const formattedPrice = 'Rp' + totalPrice.toLocaleString('id-ID');
             barTotalPriceSpan.innerText = formattedPrice;
 
+            // Munculkan Bar jika ada item
             if (totalQty > 0) {
                 checkoutBar.classList.remove('invisible', 'translate-y-10');
             } else {
                 checkoutBar.classList.add('invisible', 'translate-y-10');
             }
         }
-        
-        // Fungsi Submit ke Halaman Detail (Dipanggil oleh tombol 'Lanjut')
+
+        // Fungsi Submit ke Halaman Detail
         window.submitToDetail = function() {
             const cartData = [];
             for (const [id, qty] of Object.entries(cart)) {
                 cartData.push({ id: id, qty: qty });
             }
             
-            if (cartData.length === 0) {
-                alert('Silakan pilih menu terlebih dahulu.');
-                return;
-            }
-
             // Simpan data ke input hidden dan submit
             document.getElementById('cartInput').value = JSON.stringify(cartData);
             document.getElementById('checkoutForm').submit();

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-    <title>@yield('title', 'App')</title>
+    <title>@yield('title', 'Artha App')</title>
 
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 
@@ -17,21 +17,18 @@
 
 <body class="bg-[#F7F7F7] text-[#333333] font-sans antialiased pb-24">
 
-    {{-- ======== NAVBAR (TOP) ======== --}}
-    <header class="w-full max-w-[480px] mx-auto sticky top-0 z-50 bg-white">
-        @includeIf('component.navbar')
-    </header>
+    {{-- Navbar --}}
+    @includeIf('component.navbar')
 
     <main class="w-full max-w-[480px] mx-auto min-h-screen relative">
         @yield('content')
     </main>
 
-
     {{-- Bottom Nav --}}
-    {{-- LOGIKA BARU: Tampilkan Navbar KECUALI di halaman 'orders.detail' --}}
-    @unless(request()->routeIs('orders.detail'))
+    {{-- Tampilkan Bottom Nav KECUALI di halaman create & edit --}}
+    @if(!request()->routeIs('menu.create') && !request()->routeIs('menu.edit') && !request()->routeIs('qna.index'))
         @includeIf('component.bottom-nav')
-    @endunless
+    @endif
 
     {{-- Scripts --}}
     @vite(['resources/js/menu.js'])
