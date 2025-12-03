@@ -58,7 +58,7 @@
 
             {{-- Nomor Telpon --}}
             <div>
-                <label for="phone" class="block text-sm font-medium text-gray-900 mb-2">Nomor Telpon</label>
+                <label for="no" class="block text-sm font-medium text-gray-900 mb-2">Nomor Telpon</label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"

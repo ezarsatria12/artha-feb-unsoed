@@ -3,52 +3,70 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Order;
+use App\Models\OrderItem;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // Data Ringkasan Hari Ini (Dummy)
-        $stats = [
-            'income' => 1250000, // Rp 1.250.000
-            'orders' => 42,      // 42 Transaksi
-            'sold_items' => 86,  // 86 Menu Terjual
-            'is_open' => true,   // Status Toko Buka
+        // 1. Tentukan Rentang Waktu (Hari Ini vs Kemarin)
+        $todayStart = Carbon::today();
+        $todayEnd = Carbon::now();
+        
+        $yesterdayStart = Carbon::yesterday();
+        $yesterdayEnd = Carbon::yesterday()->endOfDay();
+
+        // 2. Query Helper untuk Meringkas Kodingan
+        $getStats = function ($start, $end) {
+            return Order::whereBetween('created_at', [$start, $end])
+                ->where('status', 'selesai')
+                ->select(
+                    DB::raw('SUM(CASE WHEN payment_method = "tunai" THEN total_uang_masuk ELSE 0 END) as tunai'),
+                    DB::raw('SUM(CASE WHEN payment_method = "qris" THEN total_uang_masuk ELSE 0 END) as qris'),
+                    DB::raw('SUM(total_uang_masuk) as revenue'),
+                    DB::raw('SUM(total_profit) as profit')
+                )->first();
+        };
+
+        $todayStats = $getStats($todayStart, $todayEnd);
+        $yesterdayStats = $getStats($yesterdayStart, $yesterdayEnd);
+
+        // 3. Siapkan Data untuk View (Handle null dengan 0)
+        $data = [
+            'tunai' => $todayStats->tunai ?? 0,
+            'qris' => $todayStats->qris ?? 0,
+            'revenue' => $todayStats->revenue ?? 0,
+            'profit' => $todayStats->profit ?? 0,
         ];
 
-        // Menu Favorit Hari Ini
-        $topProducts = [
-            ['name' => 'Ayam Geprek Jumbo', 'sold' => 24, 'image' => 'ayam.jpg'],
-            ['name' => 'Es Teh Manis', 'sold' => 50, 'image' => 'esteh.jpg'],
-            ['name' => 'Mie Goreng Spesial', 'sold' => 12, 'image' => 'mie.jpg'],
+        // 4. Hitung Persentase Perubahan (vs Kemarin)
+        $calcPct = function ($current, $past) {
+            if ($past == 0) return $current > 0 ? 100 : 0;
+            return (($current - $past) / $past) * 100;
+        };
+
+        $percentages = [
+            'tunai' => $calcPct($data['tunai'], $yesterdayStats->tunai ?? 0),
+            'qris' => $calcPct($data['qris'], $yesterdayStats->qris ?? 0),
+            'revenue' => $calcPct($data['revenue'], $yesterdayStats->revenue ?? 0),
+            'profit' => $calcPct($data['profit'], $yesterdayStats->profit ?? 0),
         ];
 
-        // Pesanan Terbaru (Live Feed Simulation)
-        $recentOrders = [
-            [
-                'code' => 'ORD-001',
-                'customer' => 'Meja 4 (Budi)',
-                'total' => 45000,
-                'time' => Carbon::now()->subMinutes(5),
-                'status' => 'success'
-            ],
-            [
-                'code' => 'ORD-002',
-                'customer' => 'Bungkus (Siti)',
-                'total' => 28000,
-                'time' => Carbon::now()->subMinutes(12),
-                'status' => 'pending'
-            ],
-            [
-                'code' => 'ORD-003',
-                'customer' => 'Meja 1 (Rian)',
-                'total' => 115000,
-                'time' => Carbon::now()->subMinutes(30),
-                'status' => 'success'
-            ],
-        ];
+        // 5. Ambil Menu Paling Laris Hari Ini
+        $topProducts = OrderItem::select('product_id', DB::raw('SUM(jumlah) as total_sold'))
+            ->whereHas('order', function($q) use ($todayStart, $todayEnd) {
+                $q->whereBetween('created_at', [$todayStart, $todayEnd])
+                  ->where('status', 'selesai');
+            })
+            ->with('product') // Eager load relasi produk
+            ->groupBy('product_id')
+            ->orderByDesc('total_sold')
+            ->limit(3)
+            ->get();
 
-        return view('dashboard.index', compact('stats', 'topProducts', 'recentOrders'));
+        return view('dashboard.index', compact('data', 'percentages', 'topProducts'));
     }
 }

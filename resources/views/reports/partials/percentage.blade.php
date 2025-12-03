@@ -1,0 +1,2 @@
+@php // Cek apakah nilai positif atau negatif untuk menentukan warna $isPositive = $value >= 0; // Warna hijau untuk positif, merah untuk negatif $colorClass = $isPositive ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'; // Ikon panah naik atau turun $icon = $isPositive ? 'ph-caret-up' : 'ph-caret-down'; @endphp
+{{-- Tampilkan angka mutlak (tanpa minus) --}} {{ number_format(abs($value), 1) }}%

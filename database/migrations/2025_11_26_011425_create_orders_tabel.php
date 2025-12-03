@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('order_code')->unique();     // contoh: ORD-20250101-001
             $table->string('nama_pemesan');              // nama pembeli / pemesan);
             $table->timestamp('order_date')->useCurrent();
+            $table->enum('tipe_pesanan', ['makan_ditempat', 'bungkus']);
             $table->enum('payment_method', ['tunai', 'qris']);   // tunai / qris
             $table->unsignedInteger('total_uang_masuk');            // total uang masuk
             $table->unsignedInteger('total_modal');              // total modal terpakai

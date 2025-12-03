@@ -61,6 +61,7 @@ Route::middleware('auth')->group(function () {
 
     // Fitur Lainnya
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/{id}', [NotificationController::class, 'show'])->name('notifications.show');
     Route::get('/qna', [QnaController::class, 'index'])->name('qna.index');
@@ -68,6 +69,8 @@ Route::middleware('auth')->group(function () {
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::get('/qna', [QnaController::class, 'index'])->name('qna.index');
+    Route::post('/qna', [QnaController::class, 'store'])->name('qna.store');
 });
 // 2. Resource Controller untuk Menu (menggunakan ProductController)
 // Ini otomatis membuat semua route: index, create, store, edit, update, destroy

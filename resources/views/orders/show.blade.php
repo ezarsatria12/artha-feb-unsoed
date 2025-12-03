@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div class="sticky top-0 bg-[#F7F7F7] z-20 px-6 pt-8 pb-4 flex items-center justify-between">
+<div class="sticky top-0 bg-white z-20 px-6 pt-8 pb-4 flex items-center justify-between">
     <a href="{{ route('orders.index') }}" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-600 shadow-sm hover:text-[#37967D] transition-all">
         <i class="ph-bold ph-caret-left text-xl"></i>
     </a>
@@ -12,7 +12,7 @@
     <div class="w-10"></div>
 </div>
 
-<div class="px-6 pb-40">
+<div class="px-6 pb-40 bg-white min-h-screen">
     <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden relative">
         
         <div class="absolute -left-3 top-32 w-6 h-6 bg-[#F7F7F7] rounded-full"></div>

@@ -14,7 +14,7 @@
     </button>
 </div>
 
-<div class="px-6 pb-32 pt-4">
+<div class="px-6 pb-32 pt-4 bg-white min-h-screen">
     <form action="{{ route('menu.update', $product->id) }}" method="POST" enctype="multipart/form-data" id="productForm">
         @csrf
         @method('PUT') <div class="mb-5">

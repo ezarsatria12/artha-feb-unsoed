@@ -14,7 +14,7 @@
     </button>
 </div>
 
-<div class="px-6 pb-32 pt-4">
+<div class="px-6 pb-32 pt-4 bg-white min-h-screen">
     <form action="{{ route('menu.store') }}" method="POST" enctype="multipart/form-data" id="productForm">
         @csrf
 

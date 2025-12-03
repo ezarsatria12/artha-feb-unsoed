@@ -1,70 +1,98 @@
 @extends('layouts.app')
 
-@section('title', 'Laporan Penjualan')
+@section('title', 'Penjualan')
 
 @section('content')
-<div class="bg-gray-50 min-h-screen pb-24">
+<div class="bg-white min-h-screen pb-28 font-sans">
 
     {{-- Header --}}
-    <header class="sticky top-0 z-10 bg-white border-b border-gray-100 px-6 py-4 flex items-center gap-4">
-        <a href="{{ route('profile.index') }}"
-            class="text-gray-500 hover:text-gray-900 transition p-1 -ml-1 rounded-full hover:bg-gray-100">
-            <i class="fa-solid fa-arrow-left text-lg"></i>
+    <header class="sticky top-0 z-10 bg-white px-6 pt-8 pb-4">
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">Penjualan</h1>
+
+        {{-- Filter Pills --}}
+        <div class="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
+            @foreach(['daily' => 'Harian', 'monthly' => 'Bulanan', 'yearly' => 'Tahunan'] as $key => $label)
+            <a href="{{ route('reports.index', ['filter' => $key]) }}"
+                class="px-5 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap
+                {{ $filter === $key ? 'bg-[#37967D] text-white shadow-lg shadow-[#37967D]/20' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' }}">
+                {{ $label }}
+            </a>
+            @endforeach
+        </div>
+
+        {{-- Download Button --}}
+        <a href="{{ route('reports.export') }}" class="inline-flex items-center gap-2 border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+            <i class="ph ph-download-simple text-lg text-[#37967D]"></i>
+            Unduh Laporan
         </a>
-        <h1 class="text-xl font-bold text-gray-900">Laporan Keuangan</h1>
     </header>
 
-    <div class="px-6 py-6">
+    <div class="px-6 space-y-6">
 
-        {{-- Filter Tabs (Harian / Bulanan / Tahunan) --}}
-        <div class="bg-gray-200 p-1 rounded-xl flex mb-6">
-            <a href="{{ route('reports.index', ['filter' => 'daily']) }}"
-                class="flex-1 text-center py-2 text-sm font-bold rounded-lg transition {{ $filter === 'daily' ? 'bg-white text-[#37967D] shadow-sm' : 'text-gray-500 hover:text-gray-700' }}">
-                Harian
-            </a>
-            <a href="{{ route('reports.index', ['filter' => 'monthly']) }}"
-                class="flex-1 text-center py-2 text-sm font-bold rounded-lg transition {{ $filter === 'monthly' ? 'bg-white text-[#37967D] shadow-sm' : 'text-gray-500 hover:text-gray-700' }}">
-                Bulanan
-            </a>
-            <a href="{{ route('reports.index', ['filter' => 'yearly']) }}"
-                class="flex-1 text-center py-2 text-sm font-bold rounded-lg transition {{ $filter === 'yearly' ? 'bg-white text-[#37967D] shadow-sm' : 'text-gray-500 hover:text-gray-700' }}">
-                Tahunan
-            </a>
+        {{-- Grid Cards Summary (TIDAK BERUBAH DARI CODE AWAL KAMU) --}}
+        <div class="grid grid-cols-2 gap-4">
+            {{-- Card 1: Total Pesanan --}}
+            <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-[0_2px_15px_rgba(0,0,0,0.03)]">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-8 h-8 rounded-full bg-[#EBF8F5] flex items-center justify-center text-[#37967D]">
+                        <i class="ph-fill ph-book-open text-lg"></i>
+                    </div>
+                    <span class="text-[11px] font-semibold text-gray-700 leading-tight">Total Pesanan</span>
+                </div>
+                <h3 class="text-3xl font-bold text-gray-900 mb-2">{{ number_format($totalOrders) }}</h3>
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] text-gray-500">Dari {{ $labelPeriod }}</span>
+                    @include('reports.partials.percentage', ['value' => $percentages['orders']])
+                </div>
+            </div>
+
+            {{-- Card 2: Laba Kotor Per Pesanan --}}
+            <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-[0_2px_15px_rgba(0,0,0,0.03)]">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-8 h-8 rounded-full bg-[#EBF8F5] flex items-center justify-center text-[#37967D]">
+                        <i class="ph-fill ph-receipt text-lg"></i>
+                    </div>
+                    <span class="text-[11px] font-semibold text-gray-700 leading-tight">Laba Kotor<br>Per Pesanan</span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Rp{{ number_format($avgRevenuePerOrder, 0, ',', '.') }}</h3>
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] text-gray-500">Dari {{ $labelPeriod }}</span>
+                    @include('reports.partials.percentage', ['value' => $percentages['avg_revenue']])
+                </div>
+            </div>
+
+            {{-- Card 3: Total Laba Kotor --}}
+            <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-[0_2px_15px_rgba(0,0,0,0.03)]">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-8 h-8 rounded-full bg-[#EBF8F5] flex items-center justify-center text-[#37967D]">
+                        <i class="ph-fill ph-book-bookmark text-lg"></i>
+                    </div>
+                    <span class="text-[11px] font-semibold text-gray-700 leading-tight">Total Laba Kotor</span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Rp{{ number_format($totalRevenue, 0, ',', '.') }}</h3>
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] text-gray-500">Dari {{ $labelPeriod }}</span>
+                    @include('reports.partials.percentage', ['value' => $percentages['revenue']])
+                </div>
+            </div>
+
+            {{-- Card 4: Estimasi Modal --}}
+            <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-[0_2px_15px_rgba(0,0,0,0.03)]">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-8 h-8 rounded-full bg-[#EBF8F5] flex items-center justify-center text-[#37967D]">
+                        <i class="ph-fill ph-book-open-text text-lg"></i>
+                    </div>
+                    <span class="text-[11px] font-semibold text-gray-700 leading-tight">Estimasi Modal</span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Rp{{ number_format($totalCapital, 0, ',', '.') }}</h3>
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] text-gray-500">Dari {{ $labelPeriod }}</span>
+                    @include('reports.partials.percentage', ['value' => $percentages['capital']])
+                </div>
+            </div>
         </div>
 
-        {{-- Summary Cards --}}
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            {{-- Total Omset --}}
-            <div
-                class="col-span-2 bg-[#37967D] text-white p-5 rounded-2xl shadow-lg shadow-green-900/20 relative overflow-hidden">
-                <div class="relative z-10">
-                    <p class="text-green-100 text-sm font-medium mb-1">Total Pemasukan</p>
-                    <h2 class="text-3xl font-bold">Rp{{ number_format($totalOmset, 0, ',', '.') }}</h2>
-                </div>
-                {{-- Decoration --}}
-                <i class="fa-solid fa-wallet absolute -bottom-4 -right-4 text-8xl text-white opacity-10"></i>
-            </div>
-
-            {{-- Profit --}}
-            <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mb-3">
-                    <i class="fa-solid fa-chart-line text-xs"></i>
-                </div>
-                <p class="text-gray-400 text-xs font-medium">Total Profit</p>
-                <h3 class="text-lg font-bold text-gray-900">Rp{{ number_format($totalProfit, 0, ',', '.') }}</h3>
-            </div>
-
-            {{-- Transaksi --}}
-            <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mb-3">
-                    <i class="fa-solid fa-receipt text-xs"></i>
-                </div>
-                <p class="text-gray-400 text-xs font-medium">Total Transaksi</p>
-                <h3 class="text-lg font-bold text-gray-900">{{ number_format($totalTransaksi) }}x</h3>
-            </div>
-        </div>
-
-        {{-- Chart Section --}}
+        {{-- SECTION GRAFIK --}}
         <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm mb-6">
             <h3 class="font-bold text-gray-900 mb-4">Grafik Penjualan</h3>
             <div class="relative h-64 w-full">
@@ -72,109 +100,93 @@
             </div>
         </div>
 
-        {{-- Top Products (Dummy List) --}}
-        <h3 class="font-bold text-gray-900 mb-3">Produk Terlaris</h3>
-        <div class="space-y-3">
-            @foreach(['Nasi Goreng Spesial', 'Ayam Bakar Madu', 'Es Teh Manis'] as $index => $item)
-            <div class="bg-white p-4 rounded-xl border border-gray-50 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div
-                        class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500 text-xs">
-                        #{{ $index + 1 }}
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-gray-900 text-sm">{{ $item }}</h4>
-                        <p class="text-xs text-gray-400">{{ rand(50, 200) }} terjual</p>
-                    </div>
+        {{-- Hasil Akhir Summary --}}
+        <div class="mt-6 mb-6">
+            <h4 class="text-sm font-bold text-gray-800 mb-4">Hasil Akhir</h4>
+            
+            <div class="bg-white p-0 space-y-4">
+                {{-- Row 1 --}}
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-500 font-medium">Total Laba Kotor</span>
+                    <span class="text-sm font-bold text-gray-900">Rp{{ number_format($totalRevenue, 0, ',', '.') }}</span>
                 </div>
-                <span class="text-sm font-bold text-[#37967D]">+{{ rand(10, 30) }}%</span>
+                
+                {{-- Row 2 --}}
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-500 font-medium">Estimasi Modal</span>
+                    <span class="text-sm font-bold text-gray-900">Rp{{ number_format($totalCapital, 0, ',', '.') }}</span>
+                </div>
+
+                <hr class="border-gray-100">
+
+                {{-- Row 3 --}}
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-500 font-medium">Laba Bersih</span>
+                    <span class="text-sm font-bold text-gray-900">Rp{{ number_format($netProfit, 0, ',', '.') }}</span>
+                </div>
+
+                {{-- Row 4 --}}
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-500 font-medium">Persentase Keuntungan</span>
+                    <span class="text-sm font-bold text-gray-900">{{ number_format($profitMargin, 1) }}%</span>
+                </div>
             </div>
-            @endforeach
         </div>
 
-    </div>
-</div>
+    </div> {{-- End of px-6 space-y-6 --}}
+</div> {{-- End of bg-white --}}
 
-{{-- Load Chart.js dari CDN --}}
+<!-- CHART.JS -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script>
-    const ctx = document.getElementById('salesChart');
+<script type="application/json" id="chart-data">
+    {
+        "labels": {!! json_encode($chartLabels) !!},
+        "revenue": {!! json_encode($chartRevenue) !!},
+        "orders": {!! json_encode($chartOrders) !!}
+    }
+</script>
 
-    // Data dari Controller
-    const labels = @json($labels);
-    const dataOmset = @json($dataOmset);
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const chartData = JSON.parse(
+        document.getElementById("chart-data").textContent
+    );
+
+    const ctx = document.getElementById('salesChart').getContext('2d');
 
     new Chart(ctx, {
-        type: 'line', // Menggunakan Line Chart agar terlihat tren-nya
+        type: 'line',
         data: {
-            labels: labels,
-            datasets: [{
-                label: 'Omset (Rp)',
-                data: dataOmset,
-                borderColor: '#37967D', // Warna Garis Hijau Artha
-                backgroundColor: 'rgba(55, 150, 125, 0.1)', // Warna Arsiran bawah
-                borderWidth: 2,
-                pointBackgroundColor: '#fff',
-                pointBorderColor: '#37967D',
-                pointRadius: 4,
-                tension: 0.4, // Membuat garis melengkung halus (spline)
-                fill: true
-            }]
+            labels: chartData.labels,
+            datasets: [
+                {
+                    label: "Pendapatan (Rp)",
+                    data: chartData.revenue,
+                    borderColor: "#4CAF50",
+                    borderWidth: 2,
+                    tension: 0.3
+                },
+                {
+                    label: "Jumlah Pesanan",
+                    data: chartData.orders,
+                    borderColor: "#2196F3",
+                    borderWidth: 2,
+                    tension: 0.3
+                }
+            ]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false // Sembunyikan legenda agar bersih
-                },
-                tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                    titleColor: '#1f2937',
-                    bodyColor: '#37967D',
-                    borderColor: '#e5e7eb',
-                    borderWidth: 1,
-                    padding: 10,
-                    displayColors: false,
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            if (context.parsed.y !== null) {
-                                label += new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(context.parsed.y);
-                            }
-                            return label;
-                        }
-                    }
-                }
-            },
             scales: {
-                x: {
-                    grid: {
-                        display: false // Sembunyikan garis grid vertikal
-                    },
-                    ticks: {
-                        font: { size: 10 }
-                    }
-                },
-                y: {
-                    beginAtZero: true,
-                    border: { display: false },
-                    grid: {
-                        color: '#f3f4f6',
-                        borderDash: [5, 5] // Garis putus-putus
-                    },
-                    ticks: {
-                        display: false // Sembunyikan angka di sumbu Y agar bersih
-                    }
-                }
+                y: { beginAtZero: true }
             }
         }
     });
+
+});
 </script>
+
+
 @endsection

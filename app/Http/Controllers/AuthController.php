@@ -42,7 +42,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'phone' => 'nullable|string|max:15', // Sesuai desain ada nomor telepon
+            'phone' => 'required|string|max:15', // Sesuai desain ada nomor telepon
             'password' => 'required|string|min:8|confirmed', // confirmed mewajibkan field password_confirmation
         ]);
 

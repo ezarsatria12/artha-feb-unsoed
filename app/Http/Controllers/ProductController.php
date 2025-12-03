@@ -5,28 +5,30 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth; // Tambahkan ini
 
 class ProductController extends Controller
 {
     /**
      * Menampilkan daftar produk (Index)
-     * Menggabungkan fitur list semua dan pencarian.
+     * Otomatis difilter by user_id karena Global Scope di Model Product
      */
     public function index(Request $request)
     {
         $query = Product::query();
 
-        // Logika Pencarian (Jika ada parameter 'search' atau 'q' dari form)
+        // Logika Pencarian
         if ($request->filled('search')) {
             $keyword = $request->search;
-            $query->where('nama_produk', 'like', "%{$keyword}%")
+            $query->where(function ($q) use ($keyword) {
+                $q->where('nama_produk', 'like', "%{$keyword}%")
                   ->orWhere('kategori', 'like', "%{$keyword}%");
+            });
         }
 
         // Ambil data terbaru
         $products = $query->latest()->get();
 
-        // Tampilkan View (Bukan JSON)
         return view('menu.index', compact('products'));
     }
 
@@ -62,13 +64,16 @@ class ProductController extends Controller
             $validated['image_url'] = $request->file('image')->store('products', 'public');
         }
 
-        // Hapus field 'image' dari array karena kolom di DB bernama 'image_url'
+        // Hapus field 'image' temp
         unset($validated['image']);
+
+        // Tambahkan user_id manual (opsional jika boot model gagal, tapi aman ditambah)
+        $validated['user_id'] = Auth::id();
 
         Product::create($validated);
 
-        // Redirect kembali ke halaman menu
-        return back()->with('product_added', true);
+        // Redirect kembali ke halaman menu dengan pesan sukses
+        return redirect()->route('menu.index')->with('success', 'Produk berhasil ditambahkan!');
     }
 
     /**
@@ -76,6 +81,7 @@ class ProductController extends Controller
      */
     public function edit(string $id)
     {
+        // FindOrFail otomatis cek user_id (404 jika punya user lain)
         $product = Product::findOrFail($id);
         return view('menu.edit', compact('product'));
     }

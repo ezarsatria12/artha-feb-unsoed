@@ -3,40 +3,44 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Carbon\Carbon;
+use App\Models\ChatMessage;
+use Illuminate\Support\Facades\Auth;
 
 class QnaController extends Controller
 {
+    // Menampilkan halaman chat & riwayat pesan
     public function index()
     {
-        // Data Dummy Percakapan
-        $messages = [
-            [
-                'id' => 1,
-                'sender' => 'admin', // Pengirim: Admin
-                'message' => 'Halo! Ada yang bisa kami bantu terkait aplikasi Artha?',
-                'created_at' => Carbon::today()->setHour(9)->setMinute(0),
-            ],
-            [
-                'id' => 2,
-                'sender' => 'user', // Pengirim: Kita (User)
-                'message' => 'Siang min, mau tanya cara ganti foto profil toko gimana ya?',
-                'created_at' => Carbon::today()->setHour(9)->setMinute(15),
-            ],
-            [
-                'id' => 3,
-                'sender' => 'admin',
-                'message' => 'Selamat siang Kak. Untuk mengganti foto profil, Kakak bisa masuk ke menu "Profile" di pojok kanan bawah, lalu klik tombol hijau bertuliskan "Edit Profile".',
-                'created_at' => Carbon::today()->setHour(9)->setMinute(20),
-            ],
-            [
-                'id' => 4,
-                'sender' => 'user',
-                'message' => 'Oh begitu, oke siap terima kasih infonya min!',
-                'created_at' => Carbon::now()->subMinutes(5),
-            ],
-        ];
+        $userId = Auth::id();
+
+        // Ambil semua chat milik user yang sedang login, urutkan dari yang terlama ke terbaru
+        $messages = ChatMessage::where('user_id', $userId)
+                        ->orderBy('created_at', 'asc')
+                        ->get();
 
         return view('qna.index', compact('messages'));
+    }
+
+    // Menyimpan pesan baru (Kirim)
+    public function store(Request $request)
+    {
+        $request->validate([
+            'message' => 'required|string|max:1000',
+        ]);
+
+        ChatMessage::create([
+            'user_id' => Auth::id(),
+            'sender'  => 'user', // Pengirim adalah user
+            'message' => $request->message,
+        ]);
+
+        // (Opsional) Auto-reply bot sederhana untuk demo
+        // ChatMessage::create([
+        //     'user_id' => Auth::id(),
+        //     'sender'  => 'admin',
+        //     'message' => 'Terima kasih, pesan Anda sudah kami terima. Admin akan segera membalas.',
+        // ]);
+
+        return redirect()->route('qna.index');
     }
 }

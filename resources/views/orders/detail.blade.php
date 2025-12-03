@@ -4,167 +4,187 @@
 
 @section('content')
 
-<form action="{{ route('orders.store') }}" method="POST" id="orderForm" class="min-h-screen pb-32">
+{{-- Form Pembungkus Utama --}}
+<form action="{{ route('orders.store') }}" method="POST" id="orderForm" class="min-h-screen bg-white relative">
     @csrf
     
+    {{-- Input Hidden --}}
     <input type="hidden" name="cart" id="cartInput">
     <input type="hidden" name="order_code" value="{{ $orderCode }}">
+    <input type="hidden" name="tipe_pesanan" id="orderType" value="makan_ditempat">
+    <input type="hidden" name="payment_method" id="paymentMethod" value="tunai">
 
-    <div class="p-4 space-y-5">
+    {{-- HEADER (Sticky Top) --}}
+    <div class="sticky top-0 bg-white z-[50] px-6 pt-8 pb-4 border-b border-gray-50 flex items-center justify-between">
+        <a href="{{ route('orders.create') }}" class="text-gray-900 hover:text-[#37967D] transition-colors p-1 -ml-1">
+            <i class="ph-bold ph-caret-left text-2xl"></i>
+        </a>
+        <h1 class="font-bold text-lg text-gray-900 tracking-tight">{{ $orderCode }}</h1>
+        <button type="button" class="text-gray-900 hover:text-[#37967D] transition-colors p-1 -mr-1">
+            <i class="ph-bold ph-info text-2xl"></i>
+        </button>
+    </div>
 
-        <div class="flex items-center gap-4">
-            <a href="{{ url()->previous() }}" class="text-gray-600 text-xl">
-                <i class="ph ph-arrow-left"></i>
-            </a>
-            <h1 class="font-semibold text-lg text-gray-800">Detail Pesanan</h1>
-            <button type="button" class="ml-auto text-gray-500 text-xl">
-                <i class="ph ph-info"></i>
-            </button>
-        </div>
+    {{-- KONTEN SCROLLABLE --}}
+    {{-- pb-40 memberikan ruang agar konten paling bawah tidak tertutup tombol submit --}}
+    <div class="p-6 space-y-6 pb-40">
 
+        {{-- 1. Info Tanggal --}}
         <div>
-            <h2 class="font-semibold text-base text-gray-800">Informasi Pesanan</h2>
-            <p class="text-xs text-gray-500">Order ID: {{ $orderCode }}</p>
-            <p class="text-xs text-gray-500">Tanggal: {{ now()->translatedFormat('d M Y') }}</p>
-            <p class="text-xs text-gray-500">Jam: {{ now()->format('H:i') }} WIB</p>
+            <h2 class="font-bold text-xl text-gray-900 mb-1">Detail Pesanan</h2>
+            <p class="text-xs text-gray-400 leading-relaxed">
+                Tanggal: {{ now()->translatedFormat('l, d F Y') }}<br>
+                Jam: {{ now()->format('H:i') }} WIB
+            </p>
         </div>
 
-        <div class="bg-gray-100 p-1 rounded-2xl flex">
-            <input type="hidden" name="tipe_pesanan" id="orderType" value="makan_ditempat">
-            
+        {{-- 2. Tipe Pesanan --}}
+        <input type="hidden" name="tipe_pesanan" id="orderType" value="makan_ditempat">
+        <div class="bg-gray-50 p-1.5 rounded-2xl flex">
             <button type="button" id="makanBtn" onclick="setOrderType('makan_ditempat')"
-                class="flex-1 px-3 py-2 text-sm font-semibold rounded-xl bg-[#37967D] text-white shadow-sm flex items-center justify-center gap-2 transition-all">
-                <i class="ph ph-bowl-food"></i> Makan Ditempat
+                class="flex-1 py-3 text-sm font-medium rounded-xl bg-[#37967D] text-white shadow-md transition-all flex items-center justify-center gap-2">
+                Makan Ditempat
             </button>
 
             <button type="button" id="bungkusBtn" onclick="setOrderType('bungkus')"
-                class="flex-1 px-3 py-2 text-sm font-medium text-gray-500 rounded-xl flex items-center justify-center gap-2 transition-all hover:bg-gray-200">
-                <i class="ph ph-shopping-bag"></i> Bungkus
+                class="flex-1 py-3 text-sm font-medium text-gray-400 rounded-xl flex items-center justify-center gap-2 transition-all hover:text-gray-600">
+                Bungkus
             </button>
         </div>
 
+        {{-- 3. Nama Pemesan --}}
         <div>
-            <label class="text-sm text-gray-600 mb-1 block">Nama Pemesan</label>
+            <label class="text-sm font-bold text-gray-900 mb-2 block">Nama Pemesan</label>
             <input type="text" name="nama_pemesan" required
-                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#37967D] focus:ring-1 focus:ring-[#37967D]"
-                placeholder="Masukkan nama">
+                class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:border-[#37967D] focus:ring-1 focus:ring-[#37967D] transition-all placeholder-gray-400 font-medium"
+                placeholder="Masukkan nama pelanggan...">
         </div>
 
-        <div class="border border-gray-200 rounded-2xl p-4 space-y-4 bg-white shadow-sm">
-            <div class="flex justify-between text-sm text-gray-500 pb-2 border-b border-gray-50">
-                <span>Menu Pesanan</span>
-                <span id="totalCountBadge">{{ count($details) }} Produk</span>
+        {{-- 4. List Menu --}}
+        <div>
+            <div class="flex justify-between items-end mb-4">
+                <h3 class="font-bold text-gray-900 text-sm">Menu Pesanan</h3>
+                <span class="text-xs text-gray-400">{{ count($details) }} Produk</span>
             </div>
 
-            <div id="cartListContainer" class="space-y-4">
+            <div id="cartListContainer" class="space-y-6">
                 @foreach ($details as $index => $item)
-                <div class="flex gap-3 cart-item" id="item-row-{{ $index }}" data-index="{{ $index }}" data-price="{{ $item['price'] }}">
+                <div class="flex gap-4 cart-item border-b border-dashed border-gray-100 pb-6 last:border-0 last:pb-0" 
+                     id="item-row-{{ $index }}" 
+                     data-index="{{ $index }}" 
+                     data-price="{{ $item['price'] }}">
                     
-                    <div class="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-100">
+                    {{-- Gambar --}}
+                    <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-100 shrink-0 border border-gray-100 shadow-sm">
                         @if ($item['image_url'])
-                            <img src="{{ $item['image_url'] }}" class="w-full h-full object-cover">
+                            <img src="{{ asset('storage/' . $item['image_url']) }}" class="w-full h-full object-cover">
                         @else
                             <div class="flex items-center justify-center w-full h-full text-gray-300">
-                                <i class="ph ph-image text-3xl"></i>
+                                <i class="ph-fill ph-image text-2xl"></i>
                             </div>
                         @endif
                     </div>
 
-                    <div class="flex-1 flex flex-col justify-between">
-                        <div>
-                            <p class="font-semibold text-sm text-gray-800 line-clamp-1">{{ $item['name'] }}</p>
-                            <p class="text-gray-500 text-xs mt-0.5">
-                                Rp{{ number_format($item['price'], 0, ',', '.') }} × <span class="qty-text">{{ $item['qty'] }}</span>
-                            </p>
+                    {{-- Info & Kontrol --}}
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start mb-1">
+                            <h4 class="font-bold text-gray-900 text-sm leading-tight">{{ $item['name'] }}</h4>
+                            <span class="font-bold text-sm text-gray-900 item-subtotal">
+                                Rp{{ number_format($item['subtotal'], 0, ',', '.') }}
+                            </span>
                         </div>
-
-                        <div class="flex items-center text-sm gap-2 mt-2 text-gray-500">
-                            <button type="button" class="btn-action px-2 py-1 border rounded-lg border-gray-300 hover:bg-gray-50 transition-colors" data-action="decrease">
-                                <i class="ph ph-minus pointer-events-none"></i>
-                            </button>
-
-                            <span class="text-gray-800 font-bold w-4 text-center item-qty">{{ $item['qty'] }}</span>
-
-                            <button type="button" class="btn-action px-2 py-1 border rounded-lg border-gray-300 hover:bg-gray-50 transition-colors" data-action="increase">
-                                <i class="ph ph-plus pointer-events-none"></i>
-                            </button>
-
-                            <button type="button" class="btn-action text-red-500 text-lg ml-auto hover:text-red-700 transition-colors" data-action="remove">
-                                <i class="ph ph-trash pointer-events-none"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-col justify-end">
-                        <p class="font-semibold text-sm text-[#37967D] item-subtotal">
-                            Rp{{ number_format($item['subtotal'], 0, ',', '.') }}
+                        
+                        <p class="text-xs text-gray-500 font-medium mb-3">
+                            RP. {{ number_format($item['price'], 0, ',', '.') }} × <span class="qty-text">{{ $item['qty'] }}</span>
                         </p>
+
+                        <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-3">
+                                <button type="button" class="btn-action w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 active:bg-gray-100 transition-all" data-action="decrease">
+                                    <i class="ph-bold ph-minus text-[10px]"></i>
+                                </button>
+                                
+                                <span class="text-sm font-bold text-gray-900 w-3 text-center item-qty">{{ $item['qty'] }}</span>
+
+                                <button type="button" class="btn-action w-6 h-6 rounded-full bg-[#1F2937] text-white flex items-center justify-center shadow-md active:scale-90 transition-all" data-action="increase">
+                                    <i class="ph-bold ph-plus text-[10px]"></i>
+                                </button>
+                            </div>
+
+                            <button type="button" class="btn-action text-red-400 hover:text-red-600 transition-colors bg-red-50 p-1.5 rounded-lg" data-action="remove">
+                                <i class="ph-bold ph-trash text-sm"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 @endforeach
             </div>
         </div>
 
-        <div class="space-y-2 text-sm text-gray-600">
-            <div class="flex justify-between">
-                <span>Subtotal</span>
-                <span class="text-gray-800 font-medium" id="summarySubtotal">Rp{{ number_format($totalPrice, 0, ',', '.') }}</span>
-            </div>
-
-            <div class="flex justify-between">
-                <span>Biaya lainnya</span>
-                <span class="text-gray-800 font-medium">Rp0</span>
-            </div>
-
-            <hr class="border-gray-200 my-1">
-
-            <div class="flex justify-between font-semibold text-base text-gray-800">
-                <span>Total Pembayaran</span>
-                <span class="text-[#37967D]" id="summaryTotal">Rp{{ number_format($totalPrice, 0, ',', '.') }}</span>
+        {{-- 5. Rincian Biaya --}}
+        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 mt-6">
+            <h3 class="font-bold text-gray-900 text-sm mb-3">Rincian Pembayaran</h3>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between text-gray-500">
+                    <span>Subtotal</span>
+                    <span class="font-bold text-gray-900" id="summarySubtotal">Rp{{ number_format($totalPrice, 0, ',', '.') }}</span>
+                </div>
+                <div class="flex justify-between text-gray-500">
+                    <span>Pajak / Biaya Layanan</span>
+                    <span class="font-bold text-gray-900">Rp0</span>
+                </div>
+                <div class="border-t border-dashed border-gray-200 my-2"></div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-900 font-bold">Total Akhir</span>
+                    <span class="text-lg font-black text-[#37967D]" id="summaryTotal">Rp{{ number_format($totalPrice, 0, ',', '.') }}</span>
+                </div>
             </div>
         </div>
 
-        <div>
-            <p class="text-sm font-medium mb-2 text-gray-800">Metode Pembayaran</p>
-            <input type="hidden" name="payment_method" id="paymentMethod" value="tunai">
-
-            <div class="flex gap-4">
+        {{-- 6. Metode Pembayaran --}}
+        <div class="mt-6">
+            <h3 class="font-bold text-gray-900 text-sm mb-3">Metode Pembayaran</h3>
+            <div class="flex gap-3">
                 <button type="button" id="cashBtn" onclick="setPayment('tunai')"
-                    class="border border-[#37967D] bg-[#37967D]/10 px-4 py-3 rounded-xl flex flex-col items-center w-28 text-sm font-semibold text-[#37967D] transition-all">
-                    <i class="ph-fill ph-money text-lg"></i>
-                    <span>Cash</span>
+                    class="flex-1 border border-[#37967D] bg-[#EBF8F5] py-3.5 rounded-xl flex flex-col items-center gap-1 transition-all group">
+                    <i class="ph-fill ph-money text-xl text-[#37967D]"></i>
+                    <span class="text-xs font-bold text-[#37967D]">Tunai (Cash)</span>
                 </button>
 
                 <button type="button" id="qrisBtn" onclick="setPayment('qris')"
-                    class="border border-gray-300 px-4 py-3 rounded-xl flex flex-col items-center w-28 text-sm text-gray-500 transition-all hover:bg-gray-50">
-                    <i class="ph-fill ph-qr-code text-lg"></i>
-                    <span>QRIS</span>
+                    class="flex-1 border border-gray-200 bg-white py-3.5 rounded-xl flex flex-col items-center gap-1 transition-all hover:bg-gray-50 group">
+                    <i class="ph-fill ph-qr-code text-xl text-gray-400 group-hover:text-gray-600"></i>
+                    <span class="text-xs font-bold text-gray-400 group-hover:text-gray-600">QRIS Scan</span>
                 </button>
             </div>
         </div>
 
-        <button type="submit" class="bg-[#37967D] text-white w-full py-3.5 rounded-2xl font-semibold shadow-md active:scale-95 transition-transform hover:bg-[#2f826c]">
-            Proses Pesanan
-        </button>
-
     </div>
+
+    {{-- 
+        7. BUTTON SUBMIT (FIXED BOTTOM)
+        - z-[999] agar berada di atas Bottom Nav Bar (jika ada)
+        - Background putih solid agar tidak transparan
+    --}}
+    <div class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 p-5 z-[999] max-w-[480px] mx-auto right-0 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <button type="submit" class="w-full bg-[#37967D] text-white py-4 rounded-2xl font-medium text-[16px] shadow-lg shadow-[#37967D]/30 active:scale-98 transition-transform hover:bg-[#2f826c] flex items-center justify-center gap-2">
+            <span>Proses Pesanan</span>
+            <i class="ph-bold ph-arrow-right"></i>
+        </button>
+    </div>
+
 </form>
 
-<div id="init-data" 
-     data-cart="{{ json_encode(array_values($details)) }}"
-     class="hidden">
-</div>
+{{-- Data Cart untuk JS --}}
+<div id="init-data" data-cart="{{ json_encode(array_values($details)) }}" class="hidden"></div>
 
-{{-- SCRIPT LOGIC (CLEAN) --}}
+{{-- SCRIPT LOGIC --}}
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-        // Ambil data dari atribut HTML (Solusi Error Merah)
         const initData = document.getElementById('init-data');
         let cart = JSON.parse(initData.getAttribute('data-cart'));
-        
         const formatRp = (num) => 'Rp' + num.toLocaleString('id-ID');
 
-        // Fungsi Render Ulang Tampilan
         function renderCart() {
             let total = 0;
             let count = 0;
@@ -181,31 +201,25 @@
                     if (row) {
                         row.style.display = 'flex';
                         row.querySelector('.item-qty').innerText = item.qty;
-                        row.querySelector('.qty-text').innerText = item.qty; // Update text "Rp... x Qty"
+                        row.querySelector('.qty-text').innerText = item.qty;
                         row.querySelector('.item-subtotal').innerText = formatRp(subtotal);
                     }
-                    
                     cartDataForInput.push({ id: item.id, qty: item.qty });
                 } else {
-                    if (row) row.style.display = 'none';
+                    if (row) row.remove();
                 }
             });
 
-            // Update Total Bawah
             document.getElementById('summarySubtotal').innerText = formatRp(total);
             document.getElementById('summaryTotal').innerText = formatRp(total);
-            document.getElementById('totalCountBadge').innerText = count + ' Produk';
-
-            // Update Hidden Input (PENTING!)
             document.getElementById('cartInput').value = JSON.stringify(cartDataForInput);
 
             if (count === 0) {
-                alert('Keranjang kosong, kembali ke menu.');
+                alert('Keranjang kosong, pesanan dibatalkan.');
                 window.location.href = "{{ route('orders.create') }}";
             }
         }
 
-        // Event Listener Global (Delegation)
         document.getElementById('cartListContainer').addEventListener('click', (e) => {
             const btn = e.target.closest('.btn-action');
             if (!btn) return;
@@ -216,65 +230,76 @@
 
             if (action === 'increase') {
                 cart[index].qty++;
-            } 
-            else if (action === 'decrease') {
+            } else if (action === 'decrease') {
                 if (cart[index].qty > 1) {
                     cart[index].qty--;
                 } else {
                     if(confirm('Hapus menu ini?')) cart[index].qty = 0;
                 }
-            } 
-            else if (action === 'remove') {
-                if(confirm('Hapus menu ini dari pesanan?')) {
-                    cart[index].qty = 0;
-                }
+            } else if (action === 'remove') {
+                if(confirm('Hapus menu ini dari pesanan?')) cart[index].qty = 0;
             }
-
             renderCart();
         });
 
-        // --- Logic Toggle Makan/Bungkus ---
         window.setOrderType = function(type) {
+            document.getElementById('orderType').value = type;
             const makanBtn = document.getElementById('makanBtn');
             const bungkusBtn = document.getElementById('bungkusBtn');
-            document.getElementById('orderType').value = type;
-
-            const activeClass = "bg-[#37967D] text-white font-semibold shadow-sm";
-            const inactiveClass = "text-gray-500 font-medium hover:bg-gray-200";
-
-            // Reset base class
-            const baseClass = "flex-1 px-3 py-2 text-sm rounded-xl flex items-center justify-center gap-2 transition-all";
+            
+            const activeClasses = ['bg-[#37967D]', 'text-white', 'shadow-md'];
+            const inactiveClasses = ['bg-transparent', 'text-gray-400', 'hover:text-gray-600'];
 
             if (type === 'makan_ditempat') {
-                makanBtn.className = `${baseClass} ${activeClass}`;
-                bungkusBtn.className = `${baseClass} ${inactiveClass}`;
+                makanBtn.classList.add(...activeClasses);
+                makanBtn.classList.remove(...inactiveClasses);
+                bungkusBtn.classList.remove(...activeClasses);
+                bungkusBtn.classList.add(...inactiveClasses);
             } else {
-                bungkusBtn.className = `${baseClass} ${activeClass}`;
-                makanBtn.className = `${baseClass} ${inactiveClass}`;
+                bungkusBtn.classList.add(...activeClasses);
+                bungkusBtn.classList.remove(...inactiveClasses);
+                makanBtn.classList.remove(...activeClasses);
+                makanBtn.classList.add(...inactiveClasses);
             }
         }
 
-        // --- Logic Toggle Pembayaran ---
         window.setPayment = function(type) {
+            document.getElementById('paymentMethod').value = type;
             const cashBtn = document.getElementById('cashBtn');
             const qrisBtn = document.getElementById('qrisBtn');
-            document.getElementById('paymentMethod').value = type;
 
-            const activeClass = "border-[#37967D] bg-[#37967D]/10 text-[#37967D] font-semibold";
-            const inactiveClass = "border-gray-300 text-gray-500 font-medium hover:bg-gray-50";
+            const activeClass = "border-[#37967D] bg-[#EBF8F5]";
+            const activeText = "text-[#37967D]";
+            const inactiveClass = "border-gray-200 bg-white";
+            const inactiveText = "text-gray-400";
+
+            // Fungsi reset style tombol
+            const resetBtn = (btn, isCash) => {
+                const icon = btn.querySelector('i');
+                const text = btn.querySelector('span');
+                btn.className = `flex-1 border ${inactiveClass} py-3.5 rounded-xl flex flex-col items-center gap-1 transition-all hover:bg-gray-50 group`;
+                icon.className = `ph-fill ${isCash ? 'ph-money' : 'ph-qr-code'} text-xl ${inactiveText} group-hover:text-gray-600`;
+                text.className = `text-xs font-bold ${inactiveText} group-hover:text-gray-600`;
+            }
             
-            const baseClass = "border px-4 py-3 rounded-xl flex flex-col items-center w-28 text-sm transition-all";
+            // Fungsi set active style
+            const setActive = (btn, isCash) => {
+                const icon = btn.querySelector('i');
+                const text = btn.querySelector('span');
+                btn.className = `flex-1 border ${activeClass} py-3.5 rounded-xl flex flex-col items-center gap-1 transition-all`;
+                icon.className = `ph-fill ${isCash ? 'ph-money' : 'ph-qr-code'} text-xl ${activeText}`;
+                text.className = `text-xs font-bold ${activeText}`;
+            }
 
             if (type === 'tunai') {
-                cashBtn.className = `${baseClass} ${activeClass}`;
-                qrisBtn.className = `${baseClass} ${inactiveClass}`;
+                setActive(cashBtn, true);
+                resetBtn(qrisBtn, false);
             } else {
-                qrisBtn.className = `${baseClass} ${activeClass}`;
-                cashBtn.className = `${baseClass} ${inactiveClass}`;
+                setActive(qrisBtn, false);
+                resetBtn(cashBtn, true);
             }
         }
 
-        // Init data saat load
         renderCart();
     });
 </script>
